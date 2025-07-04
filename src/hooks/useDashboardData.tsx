@@ -50,14 +50,14 @@ export function useDashboardData() {
         .from('tasks')
         .select(`
           assigned_to,
-          users!tasks_assigned_to_fkey(full_name)
+          profiles!tasks_assigned_to_fkey(full_name)
         `)
         .eq('status', 'completed');
 
       if (performersError) throw performersError;
 
       const performerCounts = (performersData || []).reduce((acc: any, task: any) => {
-        const name = task.users?.full_name;
+        const name = task.profiles?.full_name;
         if (name) {
           acc[name] = (acc[name] || 0) + 1;
         }

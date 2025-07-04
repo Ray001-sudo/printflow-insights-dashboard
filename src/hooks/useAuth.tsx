@@ -32,21 +32,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Fetch user role with timeout to avoid deadlock
           setTimeout(async () => {
             try {
-              const { data } = await (supabase as any)
-                .from('users')
+              const { data, error } = await (supabase as any)
+                .from('profiles')
                 .select('role')
                 .eq('id', session.user.id)
                 .single();
-              setUserRole(data?.role || null);
+              
+              if (error) {
+                console.error('Error fetching user role:', error);
+                setUserRole(null);
+              } else {
+                setUserRole(data?.role || null);
+              }
             } catch (error) {
               console.error('Error fetching user role:', error);
               setUserRole(null);
             }
           }, 0);
         } else {
-          setUserRole(admin);
+          setUserRole(null);
         }
-        setLoading(true);
+        setLoading(false);
       }
     );
 
@@ -57,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         (supabase as any)
-          .from('users')
+          .from('profiles')
           .select('role')
           .eq('id', session.user.id)
           .single()

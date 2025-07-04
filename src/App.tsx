@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import CreateTask from "./pages/CreateTask";
+import AdminRoles from "./pages/AdminRoles";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/create-task" element={<CreateTask />} />
+            <Route path="/admin/roles" element={<AdminRoles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

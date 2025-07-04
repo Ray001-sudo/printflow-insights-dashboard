@@ -2,7 +2,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Plus, LogOut, User } from 'lucide-react';
+import { Plus, LogOut, User, Settings } from 'lucide-react';
 
 export default function DashboardHeader() {
   const { user, signOut } = useAuth();
@@ -28,6 +28,15 @@ export default function DashboardHeader() {
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Task
+            </Button>
+
+            <Button
+              onClick={() => navigate('/admin/roles')}
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Manage Roles
             </Button>
             
             <div className="flex items-center space-x-3 px-4 py-2 bg-gray-50 rounded-lg">
