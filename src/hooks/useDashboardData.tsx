@@ -18,7 +18,7 @@ export function useDashboardData() {
       setLoading(true);
 
       // Total jobs this week
-      const { data: weeklyJobs, error: weeklyError } = await supabase
+      const { data: weeklyJobs, error: weeklyError } = await (supabase as any)
         .from('tasks')
         .select('*')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
@@ -27,16 +27,16 @@ export function useDashboardData() {
       setTotalJobsThisWeek(weeklyJobs?.length || 0);
 
       // Task status breakdown
-      const { data: statusData, error: statusError } = await supabase
+      const { data: statusData, error: statusError } = await (supabase as any)
         .from('tasks')
         .select('status');
 
       if (statusError) throw statusError;
       
-      const statusCounts = statusData?.reduce((acc: any, task: any) => {
+      const statusCounts = (statusData || []).reduce((acc: any, task: any) => {
         acc[task.status] = (acc[task.status] || 0) + 1;
         return acc;
-      }, {}) || {};
+      }, {});
 
       setTaskStatusData(
         Object.entries(statusCounts).map(([status, count]) => ({
@@ -46,7 +46,7 @@ export function useDashboardData() {
       );
 
       // Top performers
-      const { data: performersData, error: performersError } = await supabase
+      const { data: performersData, error: performersError } = await (supabase as any)
         .from('tasks')
         .select(`
           assigned_to,
@@ -56,13 +56,13 @@ export function useDashboardData() {
 
       if (performersError) throw performersError;
 
-      const performerCounts = performersData?.reduce((acc: any, task: any) => {
+      const performerCounts = (performersData || []).reduce((acc: any, task: any) => {
         const name = task.users?.full_name;
         if (name) {
           acc[name] = (acc[name] || 0) + 1;
         }
         return acc;
-      }, {}) || {};
+      }, {});
 
       const sortedPerformers = Object.entries(performerCounts)
         .map(([full_name, completed_tasks]) => ({
@@ -75,7 +75,7 @@ export function useDashboardData() {
       setTopPerformers(sortedPerformers);
 
       // Average completion time
-      const { data: completedTasks, error: completionError } = await supabase
+      const { data: completedTasks, error: completionError } = await (supabase as any)
         .from('tasks')
         .select('start_time, end_time')
         .eq('status', 'completed')
@@ -85,17 +85,20 @@ export function useDashboardData() {
       if (completionError) throw completionError;
 
       if (completedTasks && completedTasks.length > 0) {
-        const totalHours = completedTasks.reduce((acc, task) => {
-          const start = new Date(task.start_time);
-          const end = new Date(task.end_time);
-          const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-          return acc + hours;
+        const totalHours = completedTasks.reduce((acc: number, task: any) => {
+          if (task.start_time && task.end_time) {
+            const start = new Date(task.start_time);
+            const end = new Date(task.end_time);
+            const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+            return acc + hours;
+          }
+          return acc;
         }, 0);
         setAvgCompletionTime(totalHours / completedTasks.length);
       }
 
       // Overdue tasks
-      const { data: overdueData, error: overdueError } = await supabase
+      const { data: overdueData, error: overdueError } = await (supabase as any)
         .from('tasks')
         .select('job_name, due_date, status')
         .neq('status', 'completed')
@@ -105,7 +108,7 @@ export function useDashboardData() {
       setOverdueTasks(overdueData || []);
 
       // Recent tasks
-      const { data: recentData, error: recentError } = await supabase
+      const { data: recentData, error: recentError } = await (supabase as any)
         .from('tasks')
         .select('job_name, status, created_at')
         .order('created_at', { ascending: false })

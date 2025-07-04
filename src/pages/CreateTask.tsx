@@ -48,7 +48,7 @@ export default function CreateTask() {
   const fetchStaffMembers = async () => {
     setLoadingStaff(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('users')
         .select('id, full_name')
         .eq('role', 'staff')
@@ -138,7 +138,7 @@ export default function CreateTask() {
         }
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('tasks')
         .insert({
           job_name: formData.jobName.trim(),
