@@ -44,9 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }, 0);
         } else {
-          setUserRole(null);
+          setUserRole(admin);
         }
-        setLoading(false);
+        setLoading(true);
       }
     );
 
