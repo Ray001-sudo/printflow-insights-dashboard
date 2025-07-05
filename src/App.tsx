@@ -13,16 +13,18 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Component to handle admin setup
+// Component to handle admin setup and show setup status
 function AppWithSetup() {
   const { setupComplete, setupError } = useAdminSetup();
 
-  // Log setup status for debugging
+  // Log setup status for debugging and user feedback
   if (setupError) {
     console.warn('Admin setup encountered an error:', setupError);
+    // Don't block the app if admin setup fails, just log it
   }
   if (setupComplete) {
-    console.log('Default admin account is ready');
+    console.log('✅ Default admin account is ready for login');
+    console.log('Admin credentials: bensonandako26@gmail.com / 12345678');
   }
 
   return (

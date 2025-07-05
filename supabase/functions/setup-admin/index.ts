@@ -14,7 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase Admin client
+    console.log('Setting up default admin account...')
+
+    // Initialize Supabase Admin client with service role key
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -31,65 +33,70 @@ serve(async (req) => {
     const adminPassword = '12345678'
     const adminFullName = 'Benson Andako'
 
-    console.log('Setting up default admin account...')
+    console.log('Checking if admin user exists...')
 
     // Check if user already exists in auth.users
-    const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(adminEmail)
+    const { data: existingAuthUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(adminEmail)
     
     let userId: string
 
-    if (existingUser && existingUser.user) {
-      // User exists, use existing ID
-      userId = existingUser.user.id
-      console.log('Admin user already exists in auth.users')
+    if (existingAuthUser && existingAuthUser.user) {
+      // User exists in auth, use existing ID
+      userId = existingAuthUser.user.id
+      console.log('Admin user found in auth.users:', userId)
     } else {
-      // Create new admin user
-      console.log('Creating new admin user...')
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      // Create new admin user in auth.users
+      console.log('Creating new admin user in auth.users...')
+      const { data: newAuthUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
         email: adminEmail,
         password: adminPassword,
-        email_confirm: true, // Auto-confirm email
+        email_confirm: true, // Auto-confirm email to allow immediate login
         user_metadata: {
           full_name: adminFullName
         }
       })
 
-      if (createError) {
-        console.error('Error creating admin user:', createError)
-        throw createError
+      if (createAuthError) {
+        console.error('Error creating admin user in auth:', createAuthError)
+        throw new Error(`Failed to create auth user: ${createAuthError.message}`)
       }
 
-      if (!newUser.user) {
-        throw new Error('Failed to create admin user')
+      if (!newAuthUser.user) {
+        throw new Error('Failed to create admin user - no user returned')
       }
 
-      userId = newUser.user.id
-      console.log('Admin user created successfully')
+      userId = newAuthUser.user.id
+      console.log('Admin user created in auth.users:', userId)
     }
 
-    // Now ensure the user exists in profiles table with admin role
+    // Now handle the profiles table - check if profile exists
+    console.log('Checking profiles table for user:', userId)
     const { data: existingProfile, error: getProfileError } = await supabaseAdmin
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
 
-    if (getProfileError && getProfileError.code !== 'PGRST116') { // PGRST116 is "not found"
+    if (getProfileError) {
       console.error('Error checking profile:', getProfileError)
-      throw getProfileError
+      throw new Error(`Failed to check profile: ${getProfileError.message}`)
     }
 
     if (existingProfile) {
-      // Profile exists, update role to admin
-      console.log('Updating existing profile to admin role...')
+      // Profile exists, ensure role is admin
+      console.log('Profile exists, updating role to admin...')
       const { error: updateError } = await supabaseAdmin
         .from('profiles')
-        .update({ role: 'admin' })
+        .update({ 
+          role: 'admin',
+          email: adminEmail,
+          full_name: adminFullName
+        })
         .eq('id', userId)
 
       if (updateError) {
         console.error('Error updating profile role:', updateError)
-        throw updateError
+        throw new Error(`Failed to update profile: ${updateError.message}`)
       }
       console.log('Profile role updated to admin')
     } else {
@@ -106,16 +113,19 @@ serve(async (req) => {
 
       if (insertError) {
         console.error('Error creating profile:', insertError)
-        throw insertError
+        throw new Error(`Failed to create profile: ${insertError.message}`)
       }
       console.log('Admin profile created successfully')
     }
 
+    console.log('Default admin setup completed successfully')
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Default admin account setup completed',
-        adminEmail: adminEmail
+        message: 'Default admin account setup completed successfully',
+        adminEmail: adminEmail,
+        userId: userId
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -128,7 +138,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: error.message || 'Unknown error occurred during admin setup'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

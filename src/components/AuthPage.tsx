@@ -66,6 +66,10 @@ export default function AuthPage() {
       email: 'bensonandako26@gmail.com',
       password: '12345678'
     });
+    toast({
+      title: "Demo Credentials Filled",
+      description: "Ready to login with the demo admin account",
+    });
   };
 
   return (
