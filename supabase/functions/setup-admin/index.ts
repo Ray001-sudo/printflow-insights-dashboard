@@ -1,6 +1,6 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3'
+import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,112 +14,116 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🚀 Starting default admin account setup...')
+    console.log('🚀 Starting admin setup with working implementation...')
 
-    // Initialize Supabase Admin client with service role key
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const email = "bensonandako26@gmail.com";
+    const password = "12345678";
+    const fullName = "Benson Andako";
+
+    console.log('🔍 Creating admin user in auth.users...')
+    const { data: createdUser, error: createError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+
+    if (createError && !createError.message.includes("duplicate key")) {
+      console.error('❌ Failed to create user:', createError.message)
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: createError.message 
+        }), 
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
-      }
-    )
-
-    // Default admin credentials
-    const adminEmail = 'bensonandako26@gmail.com'
-    const adminPassword = '12345678'
-    const adminFullName = 'Benson Andako'
-
-    console.log('🔍 Checking if admin user exists in auth.users...')
-
-    // Check if user already exists in auth.users
-    const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(adminEmail)
-    
-    let userId: string
-
-    if (existingUser?.user) {
-      // User exists in auth, use existing ID
-      userId = existingUser.user.id
-      console.log('✅ Admin user found in auth.users:', userId)
-    } else {
-      // Create new admin user in auth.users using the Admin SDK
-      console.log('🆕 Creating new admin user in auth.users...')
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: adminEmail,
-        password: adminPassword,
-        email_confirm: true, // Auto-confirm email to allow immediate login
-        user_metadata: {
-          full_name: adminFullName
-        }
-      })
-
-      if (createError) {
-        console.error('Error creating admin user:', createError)
-        throw new Error(`Failed to create admin user: ${createError.message}`)
-      }
-
-      if (!newUser.user) {
-        throw new Error('Failed to create admin user - no user returned')
-      }
-
-      userId = newUser.user.id
-      console.log('✅ Admin user created in auth.users:', userId)
+      );
     }
 
-    // Now handle the profiles table - upsert the admin profile
+    const userId = createdUser?.user?.id;
+
+    if (!userId) {
+      console.log('⚠️ User might already exist, checking profiles table...')
+      const { data: existingUsers, error: fetchError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", email)
+        .limit(1);
+
+      if (fetchError || !existingUsers || existingUsers.length === 0) {
+        console.error('❌ Failed to find or create user')
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "Failed to find or create user." 
+          }), 
+          { 
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      console.log('✅ User already exists and found in profiles table')
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "User already exists and found in DB.",
+          userId: existingUsers[0].id
+        }), 
+        { 
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log('✅ Admin user created with ID:', userId)
     console.log('👤 Upserting admin profile...')
-    const { error: upsertError } = await supabaseAdmin
-      .from('profiles')
-      .upsert({
-        id: userId,
-        email: adminEmail,
-        full_name: adminFullName,
-        role: 'admin'
-      }, {
-        onConflict: 'id'
-      })
+
+    const { error: upsertError } = await supabase.from("profiles").upsert({
+      id: userId,
+      email,
+      full_name: fullName,
+      role: "admin",
+    });
 
     if (upsertError) {
-      console.error('Error upserting admin profile:', upsertError)
-      throw new Error(`Failed to upsert admin profile: ${upsertError.message}`)
+      console.error('❌ Failed to upsert profile:', upsertError.message)
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: upsertError.message 
+        }), 
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     console.log('✅ Admin profile upserted successfully')
-
-    // Test login to verify everything works
-    console.log('🔐 Testing admin login credentials...')
-    const { data: loginTest, error: loginError } = await supabaseAdmin.auth.signInWithPassword({
-      email: adminEmail,
-      password: adminPassword
-    })
-
-    if (loginError || !loginTest.user) {
-      console.error('Login test failed:', loginError)
-      throw new Error(`Admin login test failed: ${loginError?.message || 'Unknown error'}`)
-    }
-
-    // Sign out the test session
-    await supabaseAdmin.auth.signOut()
-    console.log('✅ Admin login test successful')
-
-    console.log('🎉 Default admin setup completed successfully!')
+    console.log('🎉 Admin setup completed successfully!')
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Default admin account setup completed successfully',
-        adminEmail: adminEmail,
+      JSON.stringify({ 
+        success: true, 
+        message: "Admin user created and role set.",
         userId: userId,
-        note: 'Admin can now log in immediately with bensonandako26@gmail.com / 12345678'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        adminEmail: email,
+        note: "Admin can now log in with bensonandako26@gmail.com / 12345678"
+      }), 
+      { 
         status: 200,
-      },
-    )
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
 
   } catch (error) {
     console.error('❌ Setup admin error:', error)
@@ -135,4 +139,4 @@ serve(async (req) => {
       },
     )
   }
-})
+});

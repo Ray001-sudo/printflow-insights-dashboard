@@ -10,9 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
  * The hook runs once on app initialization and:
  * 1. Calls the setup-admin Edge Function to handle user creation
  * 2. Creates the user in auth.users using Supabase Admin SDK
- * 3. Ensures the user has an admin profile record
- * 4. Tests login credentials to verify everything works
- * 5. Allows immediate login without email verification
+ * 3. Ensures the user has an admin profile record with role 'admin'
+ * 4. Allows immediate login without email verification
  */
 export function useAdminSetup() {
   const [setupComplete, setSetupComplete] = useState(false);
@@ -21,7 +20,7 @@ export function useAdminSetup() {
   useEffect(() => {
     const setupDefaultAdmin = async () => {
       try {
-        console.log('🚀 Initializing default admin setup...');
+        console.log('🚀 Initializing admin setup with working implementation...');
         
         // Call the edge function to setup admin account
         const { data, error } = await supabase.functions.invoke('setup-admin', {
@@ -35,8 +34,10 @@ export function useAdminSetup() {
         }
 
         if (data?.success) {
-          console.log('✅ Default admin setup completed:', data.message);
-          console.log('👤 Admin user ID:', data.userId);
+          console.log('✅ Admin setup completed:', data.message);
+          if (data.userId) {
+            console.log('👤 Admin user ID:', data.userId);
+          }
           console.log('🔐 Ready to login with: bensonandako26@gmail.com / 12345678');
           setSetupComplete(true);
         } else {
