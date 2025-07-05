@@ -19,12 +19,12 @@ function AppWithSetup() {
 
   // Log setup status for debugging and user feedback
   if (setupError) {
-    console.warn('Admin setup encountered an error:', setupError);
+    console.warn('⚠️ Admin setup encountered an error:', setupError);
     // Don't block the app if admin setup fails, just log it
   }
   if (setupComplete) {
     console.log('✅ Default admin account is ready for login');
-    console.log('Admin credentials: bensonandako26@gmail.com / 12345678');
+    console.log('🔐 Admin credentials: bensonandako26@gmail.com / 12345678');
   }
 
   return (

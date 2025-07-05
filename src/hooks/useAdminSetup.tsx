@@ -8,10 +8,11 @@ import { supabase } from '@/integrations/supabase/client';
  * for immediate access to the dashboard after deployment.
  * 
  * The hook runs once on app initialization and:
- * 1. Checks if the admin user exists in auth.users
- * 2. Creates the user if it doesn't exist with auto-confirmed email
+ * 1. Calls the setup-admin Edge Function to handle user creation
+ * 2. Creates/updates the user in auth.users with proper password
  * 3. Ensures the user has an admin profile record
- * 4. Allows immediate login without email verification
+ * 4. Verifies login credentials work correctly
+ * 5. Allows immediate login without email verification
  */
 export function useAdminSetup() {
   const [setupComplete, setSetupComplete] = useState(false);
@@ -20,7 +21,7 @@ export function useAdminSetup() {
   useEffect(() => {
     const setupDefaultAdmin = async () => {
       try {
-        console.log('Initializing default admin setup...');
+        console.log('🚀 Initializing default admin setup...');
         
         // Call the edge function to setup admin account
         const { data, error } = await supabase.functions.invoke('setup-admin', {
@@ -28,21 +29,22 @@ export function useAdminSetup() {
         });
 
         if (error) {
-          console.error('Admin setup error:', error);
+          console.error('❌ Admin setup error:', error);
           setSetupError(error.message);
           return;
         }
 
         if (data?.success) {
-          console.log('Default admin setup completed:', data.message);
-          console.log('Admin user ID:', data.userId);
+          console.log('✅ Default admin setup completed:', data.message);
+          console.log('👤 Admin user ID:', data.userId);
+          console.log('🔐 Admin credentials: bensonandako26@gmail.com / 12345678');
           setSetupComplete(true);
         } else {
-          console.error('Admin setup failed:', data?.error);
+          console.error('❌ Admin setup failed:', data?.error);
           setSetupError(data?.error || 'Unknown error during admin setup');
         }
       } catch (error) {
-        console.error('Admin setup exception:', error);
+        console.error('❌ Admin setup exception:', error);
         setSetupError(error instanceof Error ? error.message : 'Setup failed');
       }
     };
