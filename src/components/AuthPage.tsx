@@ -1,4 +1,3 @@
-import { supabase } from '@/lib/supabaseClient';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
