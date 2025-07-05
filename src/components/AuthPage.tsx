@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PrinterIcon } from 'lucide-react';
+import { Loader2, PrinterIcon, Info } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +61,13 @@ export default function AuthPage() {
     setIsLoading(false);
   };
 
+  const fillDemoCredentials = () => {
+    setLoginData({
+      email: 'bensonandako26@gmail.com',
+      password: '12345678'
+    });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md shadow-xl">
@@ -71,6 +79,21 @@ export default function AuthPage() {
           <CardDescription>Manager Dashboard Access</CardDescription>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-4">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Demo Admin Account:</strong> bensonandako26@gmail.com / 12345678
+              <Button 
+                variant="link" 
+                size="sm" 
+                className="p-0 h-auto ml-2"
+                onClick={fillDemoCredentials}
+              >
+                Fill credentials
+              </Button>
+            </AlertDescription>
+          </Alert>
+          
           <Tabs defaultValue="login" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
