@@ -21,42 +21,44 @@ export default function AuthPage() {
     e.preventDefault();
     setIsLoading(true);
 
-   const { user, error } = await signIn(loginData.email, loginData.password);
+    const { user, error } = await signIn(loginData.email, loginData.password);
 
-if (error) {
-  toast({
-    title: "Login Failed",
-    description: error.message,
-    variant: "destructive",
-  });
-} else {
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+    if (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
 
-  if (profileError) {
-    toast({
-      title: "Login Error",
-      description: profileError.message,
-      variant: "destructive",
-    });
-  } else if (profile?.role === 'admin') {
-    toast({
-      title: "Admin Login Successful",
-      description: "Welcome Admin!",
-    });
-    // 👉 redirect to admin dashboard if needed
-    // router.push('/admin');
-  } else {
-    toast({
-      title: "Access Denied",
-      description: "You are not an admin.",
-      variant: "destructive",
-    });
-  }
-}
+      if (profileError) {
+        toast({
+          title: "Login Error",
+          description: profileError.message,
+          variant: "destructive",
+        });
+      } else if (profile?.role === 'admin') {
+        toast({
+          title: "Admin Login Successful",
+          description: "Welcome Admin!",
+        });
+        // 👉 redirect to admin dashboard if needed
+        // router.push('/admin');
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "You are not an admin.",
+          variant: "destructive",
+        });
+      }
+    }
+    setIsLoading(false); // ✅ Added missing setIsLoading(false)
+  }; // ✅ Added missing closing brace
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
