@@ -9,9 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
  * 
  * The hook runs once on app initialization and:
  * 1. Calls the setup-admin Edge Function to handle user creation
- * 2. Creates/updates the user in auth.users with proper password
+ * 2. Creates the user in auth.users using Supabase Admin SDK
  * 3. Ensures the user has an admin profile record
- * 4. Verifies login credentials work correctly
+ * 4. Tests login credentials to verify everything works
  * 5. Allows immediate login without email verification
  */
 export function useAdminSetup() {
@@ -37,7 +37,7 @@ export function useAdminSetup() {
         if (data?.success) {
           console.log('✅ Default admin setup completed:', data.message);
           console.log('👤 Admin user ID:', data.userId);
-          console.log('🔐 Admin credentials: bensonandako26@gmail.com / 12345678');
+          console.log('🔐 Ready to login with: bensonandako26@gmail.com / 12345678');
           setSetupComplete(true);
         } else {
           console.error('❌ Admin setup failed:', data?.error);

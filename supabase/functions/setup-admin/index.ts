@@ -44,34 +44,8 @@ serve(async (req) => {
       // User exists in auth, use existing ID
       userId = existingUser.user.id
       console.log('✅ Admin user found in auth.users:', userId)
-      
-      // Check if user can actually sign in by testing the credentials
-      console.log('🔐 Testing admin credentials...')
-      const { data: signInTest, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
-        email: adminEmail,
-        password: adminPassword
-      })
-      
-      if (signInError || !signInTest.user) {
-        console.log('❌ Admin password incorrect, updating password...')
-        // Update the password to ensure it matches our expected password
-        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-          password: adminPassword,
-          email_confirm: true
-        })
-        
-        if (updateError) {
-          console.error('Error updating admin password:', updateError)
-          throw new Error(`Failed to update admin password: ${updateError.message}`)
-        }
-        console.log('✅ Admin password updated successfully')
-      } else {
-        console.log('✅ Admin credentials verified')
-        // Sign out the test session
-        await supabaseAdmin.auth.signOut()
-      }
     } else {
-      // Create new admin user in auth.users
+      // Create new admin user in auth.users using the Admin SDK
       console.log('🆕 Creating new admin user in auth.users...')
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: adminEmail,
@@ -115,21 +89,21 @@ serve(async (req) => {
 
     console.log('✅ Admin profile upserted successfully')
 
-    // Final verification - test login one more time
-    console.log('🔍 Final verification - testing admin login...')
-    const { data: finalTest, error: finalTestError } = await supabaseAdmin.auth.signInWithPassword({
+    // Test login to verify everything works
+    console.log('🔐 Testing admin login credentials...')
+    const { data: loginTest, error: loginError } = await supabaseAdmin.auth.signInWithPassword({
       email: adminEmail,
       password: adminPassword
     })
 
-    if (finalTestError || !finalTest.user) {
-      console.error('Final login test failed:', finalTestError)
-      throw new Error(`Admin login verification failed: ${finalTestError?.message || 'Unknown error'}`)
+    if (loginError || !loginTest.user) {
+      console.error('Login test failed:', loginError)
+      throw new Error(`Admin login test failed: ${loginError?.message || 'Unknown error'}`)
     }
 
     // Sign out the test session
     await supabaseAdmin.auth.signOut()
-    console.log('✅ Admin login verification successful')
+    console.log('✅ Admin login test successful')
 
     console.log('🎉 Default admin setup completed successfully!')
 
@@ -139,7 +113,7 @@ serve(async (req) => {
         message: 'Default admin account setup completed successfully',
         adminEmail: adminEmail,
         userId: userId,
-        note: 'Admin can now log in immediately'
+        note: 'Admin can now log in immediately with bensonandako26@gmail.com / 12345678'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
