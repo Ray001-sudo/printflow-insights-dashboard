@@ -21,23 +21,42 @@ export default function AuthPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signIn(loginData.email, loginData.password);
+   const { user, error } = await signIn(loginData.email, loginData.password);
 
-    if (error) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Login Successful",
-        description: "Welcome to Icons PrintFlow Manager!",
-      });
-    }
+if (error) {
+  toast({
+    title: "Login Failed",
+    description: error.message,
+    variant: "destructive",
+  });
+} else {
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
 
-    setIsLoading(false);
-  };
+  if (profileError) {
+    toast({
+      title: "Login Error",
+      description: profileError.message,
+      variant: "destructive",
+    });
+  } else if (profile?.role === 'admin') {
+    toast({
+      title: "Admin Login Successful",
+      description: "Welcome Admin!",
+    });
+    // 👉 redirect to admin dashboard if needed
+    // router.push('/admin');
+  } else {
+    toast({
+      title: "Access Denied",
+      description: "You are not an admin.",
+      variant: "destructive",
+    });
+  }
+}
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
