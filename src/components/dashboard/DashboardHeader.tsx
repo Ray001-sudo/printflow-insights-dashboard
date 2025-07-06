@@ -2,7 +2,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Plus, LogOut, User, Settings } from 'lucide-react';
+import { Plus, LogOut, User, Settings, BarChart3, FolderOpen, Terminal as TerminalIcon, CreditCard } from 'lucide-react';
 
 export default function DashboardHeader() {
   const { user, signOut } = useAuth();
@@ -28,6 +28,51 @@ export default function DashboardHeader() {
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Task
+            </Button>
+
+            <Button
+              onClick={() => navigate('/projects')}
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <FolderOpen className="w-4 h-4 mr-2" />
+              Projects
+            </Button>
+
+            <Button
+              onClick={() => navigate('/analytics')}
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
+            </Button>
+
+            <Button
+              onClick={() => navigate('/files')}
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <FolderOpen className="w-4 h-4 mr-2" />
+              Files
+            </Button>
+
+            <Button
+              onClick={() => navigate('/terminal')}
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <TerminalIcon className="w-4 h-4 mr-2" />
+              Terminal
+            </Button>
+
+            <Button
+              onClick={() => navigate('/billing')}
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Billing
             </Button>
 
             <Button

@@ -9,6 +9,11 @@ import { useAdminSetup } from "@/hooks/useAdminSetup";
 import Index from "./pages/Index";
 import CreateTask from "./pages/CreateTask";
 import AdminRoles from "./pages/AdminRoles";
+import Projects from "./pages/Projects";
+import Analytics from "./pages/Analytics";
+import FileManager from "./pages/FileManager";
+import Terminal from "./pages/Terminal";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +38,11 @@ function AppWithSetup() {
         <Route path="/" element={<Index />} />
         <Route path="/create-task" element={<CreateTask />} />
         <Route path="/admin/roles" element={<AdminRoles />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/files" element={<FileManager />} />
+        <Route path="/terminal" element={<Terminal />} />
+        <Route path="/billing" element={<Billing />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
