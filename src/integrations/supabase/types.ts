@@ -9,6 +9,169 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      billing: {
+        Row: {
+          amount: number
+          client: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          paid_date: string | null
+          project_id: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          client: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          paid_date?: string | null
+          project_id?: string | null
+          status: string
+        }
+        Update: {
+          amount?: number
+          client?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          paid_date?: string | null
+          project_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cron_jobs: {
+        Row: {
+          command: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          last_run: string | null
+          name: string
+          next_run: string | null
+          schedule: string
+          status: string
+        }
+        Insert: {
+          command: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          last_run?: string | null
+          name: string
+          next_run?: string | null
+          schedule: string
+          status?: string
+        }
+        Update: {
+          command?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          last_run?: string | null
+          name?: string
+          next_run?: string | null
+          schedule?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      metrics: {
+        Row: {
+          additional_data: Json | null
+          created_at: string | null
+          id: string
+          metric_date: string
+          metric_type: string
+          metric_value: number
+        }
+        Insert: {
+          additional_data?: Json | null
+          created_at?: string | null
+          id?: string
+          metric_date?: string
+          metric_type: string
+          metric_value: number
+        }
+        Update: {
+          additional_data?: Json | null
+          created_at?: string | null
+          id?: string
+          metric_date?: string
+          metric_type?: string
+          metric_value?: number
+        }
+        Relationships: []
+      }
+      print_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          job_name: string
+          paper_type: string | null
+          print_quality: string | null
+          project_id: string | null
+          quantity: number | null
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          job_name: string
+          paper_type?: string | null
+          print_quality?: string | null
+          project_id?: string | null
+          quantity?: number | null
+          started_at?: string | null
+          status: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          job_name?: string
+          paper_type?: string | null
+          print_quality?: string | null
+          project_id?: string | null
+          quantity?: number | null
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "print_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -30,6 +193,84 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          client: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          name: string
+          progress: number | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          client: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          progress?: number | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          client?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          progress?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      webhooks: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          headers: Json | null
+          id: string
+          last_triggered: string | null
+          method: string
+          name: string
+          payload_template: Json | null
+          status: string
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          headers?: Json | null
+          id?: string
+          last_triggered?: string | null
+          method?: string
+          name: string
+          payload_template?: Json | null
+          status?: string
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          headers?: Json | null
+          id?: string
+          last_triggered?: string | null
+          method?: string
+          name?: string
+          payload_template?: Json | null
+          status?: string
+          url?: string
         }
         Relationships: []
       }
