@@ -59,30 +59,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => {
-            setUserRole(data?.role || 'admin');
-            setLoading(false);
-          })
-          .catch((error) => {
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          try {
+            const { data, error: roleError } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (roleError) {
+              console.error('Error fetching user role:', roleError);
+              // Default to admin since all new users are admin
+              setUserRole('admin');
+            } else {
+              setUserRole(data?.role || 'admin');
+            }
+          } catch (error) {
             console.error('Error fetching user role:', error);
             // Default to admin since all new users are admin
             setUserRole('admin');
-            setLoading(false);
-          });
-      } else {
+          }
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
         setLoading(false);
       }
-    });
+    };
+
+    getInitialSession();
 
     return () => subscription.unsubscribe();
   }, []);
