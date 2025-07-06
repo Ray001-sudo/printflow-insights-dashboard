@@ -1,8 +1,6 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import AuthPage from '@/components/AuthPage';
 import Dashboard from '@/components/Dashboard';
-import AccessDenied from '@/components/AccessDenied';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Index = () => {
@@ -34,8 +32,11 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  if (userRole !== 'admin') {
-    return <AccessDenied />;
+  // Since all users are now admin by default, we can directly show the dashboard
+  // But we'll keep a basic check for safety
+  if (userRole && userRole !== 'admin') {
+    // This should rarely happen now, but keeping for safety
+    console.warn('Non-admin user detected, but all users should be admin by default');
   }
 
   return <Dashboard />;

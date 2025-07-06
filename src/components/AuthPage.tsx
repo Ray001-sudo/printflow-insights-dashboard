@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,65 +21,61 @@ export default function AuthPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { user, error } = await signIn(loginData.email, loginData.password);
+    try {
+      const { user, error } = await signIn(loginData.email, loginData.password);
 
-    if (error) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
+      if (error) {
         toast({
-          title: "Login Error",
-          description: profileError.message,
+          title: "Login Failed",
+          description: error.message,
           variant: "destructive",
         });
-      } else if (profile?.role === 'admin') {
+      } else if (user) {
         toast({
-          title: "Admin Login Successful",
-          description: "Welcome Admin!",
-        });
-        // 👉 redirect to admin dashboard if needed
-        // router.push('/admin');
-      } else {
-        toast({
-          title: "Access Denied",
-          description: "You are not an admin.",
-          variant: "destructive",
+          title: "Login Successful",
+          description: "Welcome to Icons PrintFlow!",
         });
       }
+    } catch (error: any) {
+      toast({
+        title: "Login Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false); // ✅ Added missing setIsLoading(false)
-  }; // ✅ Added missing closing brace
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
+    try {
+      const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Signup Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account Created Successfully",
+          description: "Your admin account has been created! Please check your email to verify your account.",
+        });
+        setSignupData({ email: '', password: '', fullName: '' });
+      }
+    } catch (error: any) {
       toast({
-        title: "Signup Failed",
-        description: error.message,
+        title: "Signup Error",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Account Created",
-        description: "Please check your email to verify your account.",
-      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const fillDemoCredentials = () => {
@@ -115,6 +112,13 @@ export default function AuthPage() {
               >
                 Fill credentials
               </Button>
+            </AlertDescription>
+          </Alert>
+
+          <Alert className="mb-4 border-green-200 bg-green-50">
+            <Info className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              <strong>Note:</strong> All new accounts are automatically granted admin privileges with full dashboard access.
             </AlertDescription>
           </Alert>
           
@@ -190,7 +194,7 @@ export default function AuthPage() {
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Account
+                  Create Admin Account
                 </Button>
               </form>
             </TabsContent>

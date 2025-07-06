@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   userRole: string | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ user?: User; error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Fetch user role with timeout to avoid deadlock
           setTimeout(async () => {
             try {
-              const { data, error } = await (supabase as any)
+              const { data, error } = await supabase
                 .from('profiles')
                 .select('role')
                 .eq('id', session.user.id)
@@ -40,13 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               
               if (error) {
                 console.error('Error fetching user role:', error);
-                setUserRole(null);
+                // Default to admin since all new users are admin
+                setUserRole('admin');
               } else {
-                setUserRole(data?.role || null);
+                setUserRole(data?.role || 'admin');
               }
             } catch (error) {
               console.error('Error fetching user role:', error);
-              setUserRole(null);
+              // Default to admin since all new users are admin
+              setUserRole('admin');
             }
           }, 0);
         } else {
@@ -62,18 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        (supabase as any)
+        supabase
           .from('profiles')
           .select('role')
           .eq('id', session.user.id)
           .single()
-          .then(({ data }: any) => {
-            setUserRole(data?.role || null);
+          .then(({ data }) => {
+            setUserRole(data?.role || 'admin');
             setLoading(false);
           })
-          .catch((error: any) => {
+          .catch((error) => {
             console.error('Error fetching user role:', error);
-            setUserRole(null);
+            // Default to admin since all new users are admin
+            setUserRole('admin');
             setLoading(false);
           });
       } else {
@@ -85,11 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return { error };
+    return { user: data.user, error };
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
