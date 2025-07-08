@@ -15,11 +15,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
+type ProjectStatus = 'active' | 'completed' | 'on_hold' | 'cancelled';
+
 interface Project {
   id: string;
   name: string;
   client: string;
-  status: 'active' | 'completed' | 'on_hold' | 'cancelled';
+  status: ProjectStatus;
   progress: number;
   due_date: string;
   created_at: string;
@@ -37,7 +39,7 @@ export default function Projects() {
   const [formData, setFormData] = useState({
     name: '',
     client: '',
-    status: 'active' as const,
+    status: 'active' as ProjectStatus,
     progress: 0,
     due_date: '',
     description: ''
@@ -51,7 +53,14 @@ export default function Projects() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
+      
+      // Type assertion to ensure data matches our interface
+      const typedProjects = (data || []).map(project => ({
+        ...project,
+        status: project.status as ProjectStatus
+      }));
+      
+      setProjects(typedProjects);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -203,7 +212,7 @@ export default function Projects() {
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="status" className="text-right">Status</Label>
-                    <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                    <Select value={formData.status} onValueChange={(value: ProjectStatus) => setFormData({ ...formData, status: value })}>
                       <SelectTrigger className="col-span-3">
                         <SelectValue />
                       </SelectTrigger>

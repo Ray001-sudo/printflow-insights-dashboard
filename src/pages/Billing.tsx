@@ -14,12 +14,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
+type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+
 interface Invoice {
   id: string;
   invoice_number: string;
   client: string;
   amount: number;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  status: InvoiceStatus;
   due_date: string;
   paid_date?: string;
   description: string;
@@ -36,7 +38,7 @@ export default function Billing() {
     invoice_number: '',
     client: '',
     amount: '',
-    status: 'draft' as const,
+    status: 'draft' as InvoiceStatus,
     due_date: '',
     description: '',
     project_id: ''
@@ -52,7 +54,14 @@ export default function Billing() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setInvoices(data || []);
+      
+      // Type assertion to ensure data matches our interface
+      const typedInvoices = (data || []).map(invoice => ({
+        ...invoice,
+        status: invoice.status as InvoiceStatus
+      }));
+      
+      setInvoices(typedInvoices);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -257,7 +266,7 @@ export default function Billing() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="status">Status</Label>
-                      <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                      <Select value={formData.status} onValueChange={(value: InvoiceStatus) => setFormData({ ...formData, status: value })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
