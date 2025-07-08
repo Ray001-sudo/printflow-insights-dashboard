@@ -36,12 +36,12 @@ export default function Analytics() {
       const monthlyMap = new Map();
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       
-      // Initialize last 6 months with 0 jobs
+      // Initialize last 6 months with 0 jobs and revenue
       for (let i = 5; i >= 0; i--) {
         const date = new Date();
         date.setMonth(date.getMonth() - i);
         const monthKey = months[date.getMonth()];
-        monthlyMap.set(monthKey, { month: monthKey, jobs: 0, revenue: Math.floor(Math.random() * 20000) + 10000 });
+        monthlyMap.set(monthKey, { month: monthKey, jobs: 0, revenue: 0 });
       }
 
       // Count actual jobs per month
@@ -53,6 +53,24 @@ export default function Analytics() {
           existing.jobs += 1;
         }
       });
+
+      // Fetch real revenue data for each month
+      const { data: revenueData, error: revenueError } = await supabase
+        .from('billing')
+        .select('amount, created_at')
+        .eq('status', 'paid')
+        .gte('created_at', sixMonthsAgo.toISOString());
+
+      if (!revenueError && revenueData) {
+        revenueData.forEach((bill: any) => {
+          const billDate = new Date(bill.created_at);
+          const monthKey = months[billDate.getMonth()];
+          if (monthlyMap.has(monthKey)) {
+            const existing = monthlyMap.get(monthKey);
+            existing.revenue += Number(bill.amount);
+          }
+        });
+      }
 
       setMonthlyData(Array.from(monthlyMap.values()));
 
@@ -67,7 +85,7 @@ export default function Analytics() {
 
       if (currentError) throw currentError;
 
-      // Fetch unique clients count
+      // Fetch unique clients count from projects
       const { data: clientsData, error: clientsError } = await supabase
         .from('projects')
         .select('client');
@@ -76,28 +94,43 @@ export default function Analytics() {
 
       const uniqueClients = new Set(clientsData?.map(p => p.client)).size;
 
-      // Fetch revenue data from billing
-      const { data: revenueData, error: revenueError } = await supabase
+      // Fetch real revenue for current month
+      const { data: currentRevenue, error: currentRevenueError } = await supabase
         .from('billing')
         .select('amount')
         .eq('status', 'paid')
         .gte('created_at', currentMonth.toISOString());
 
-      const totalRevenue = revenueData?.reduce((sum, bill) => sum + Number(bill.amount), 0) || 0;
+      const totalCurrentRevenue = currentRevenue?.reduce((sum, bill) => sum + Number(bill.amount), 0) || 0;
+
+      // Calculate growth rate based on previous month
+      const previousMonth = new Date();
+      previousMonth.setMonth(previousMonth.getMonth() - 1);
+      previousMonth.setDate(1);
+      
+      const { data: previousJobs, error: previousError } = await supabase
+        .from('print_logs')
+        .select('id')
+        .gte('created_at', previousMonth.toISOString())
+        .lt('created_at', currentMonth.toISOString());
+
+      const growthRate = previousJobs?.length > 0 
+        ? Math.round(((currentJobs?.length || 0) - previousJobs.length) / previousJobs.length * 100)
+        : 0;
 
       setKeyMetrics({
         monthlyJobs: currentJobs?.length || 0,
-        revenue: totalRevenue,
+        revenue: totalCurrentRevenue,
         activeClients: uniqueClients,
-        growthRate: Math.floor(Math.random() * 30) + 10 // Simulated growth rate
+        growthRate: growthRate
       });
 
-      // Service distribution based on job names
+      // Service distribution based on actual job names
       const { data: allJobs, error: allJobsError } = await supabase
         .from('print_logs')
         .select('job_name');
 
-      if (!allJobsError && allJobs) {
+      if (!allJobsError && allJobs && allJobs.length > 0) {
         const serviceMap = new Map();
         const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
         
@@ -109,6 +142,7 @@ export default function Analytics() {
           else if (jobName.includes('brochure')) category = 'Brochures';
           else if (jobName.includes('banner')) category = 'Banners';
           else if (jobName.includes('flyer')) category = 'Flyers';
+          else if (jobName.includes('poster')) category = 'Posters';
           
           serviceMap.set(category, (serviceMap.get(category) || 0) + 1);
         });
@@ -201,7 +235,9 @@ export default function Analytics() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+{keyMetrics.growthRate}%</div>
+              <div className="text-2xl font-bold">
+                {keyMetrics.growthRate > 0 ? '+' : ''}{keyMetrics.growthRate}%
+              </div>
               <p className="text-xs text-muted-foreground">Month over month</p>
             </CardContent>
           </Card>
