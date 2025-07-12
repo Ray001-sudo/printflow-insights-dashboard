@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +41,7 @@ export default function Billing() {
     status: 'draft' as InvoiceStatus,
     due_date: '',
     description: '',
-    project_id: ''
+    project_id: null as string | null
   });
   const { toast } = useToast();
   const { user } = useAuth();
@@ -90,9 +91,13 @@ export default function Billing() {
 
     try {
       const invoiceData = {
-        ...formData,
+        invoice_number: formData.invoice_number,
+        client: formData.client,
         amount: parseFloat(formData.amount),
-        project_id: formData.project_id === 'none' ? null : formData.project_id,
+        status: formData.status,
+        due_date: formData.due_date,
+        description: formData.description,
+        project_id: formData.project_id || null,
         created_by: user.id
       };
 
@@ -115,7 +120,7 @@ export default function Billing() {
         status: 'draft',
         due_date: '',
         description: '',
-        project_id: ''
+        project_id: null
       });
       fetchInvoices();
     } catch (error: any) {
@@ -280,7 +285,7 @@ export default function Billing() {
                     </div>
                     <div>
                       <Label htmlFor="project_id">Project (Optional)</Label>
-                      <Select value={formData.project_id} onValueChange={(value) => setFormData({ ...formData, project_id: value })}>
+                      <Select value={formData.project_id || ""} onValueChange={(value) => setFormData({ ...formData, project_id: value === "none" ? null : value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select project" />
                         </SelectTrigger>
