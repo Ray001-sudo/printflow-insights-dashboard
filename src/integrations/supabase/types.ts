@@ -240,6 +240,36 @@ export type Database = {
         }
         Relationships: []
       }
+      staff: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string
+          full_name: string
+          id: string
+          phone_number: string | null
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email: string
+          full_name: string
+          id?: string
+          phone_number?: string | null
+          role: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone_number?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_by: string | null

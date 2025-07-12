@@ -14,6 +14,7 @@ import Analytics from "./pages/Analytics";
 import FileManager from "./pages/FileManager";
 import Terminal from "./pages/Terminal";
 import Billing from "./pages/Billing";
+import Staff from "./pages/Staff";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ function AppWithSetup() {
         <Route path="/files" element={<FileManager />} />
         <Route path="/terminal" element={<Terminal />} />
         <Route path="/billing" element={<Billing />} />
+        <Route path="/staff" element={<Staff />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
