@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -183,14 +182,14 @@ export default function CreateTask() {
         fileUrl = await uploadFile(selectedFile, formData.jobName);
       }
 
-      // Insert task into database
-      const { data, error } = await (supabase as any)
+      // Insert task into database with proper assigned_by field
+      const { data, error } = await supabase
         .from('tasks')
         .insert({
           job_name: formData.jobName,
           description: formData.description || null,
           assigned_to: formData.assignedTo,
-          assigned_by: user.id,
+          assigned_by: user.id, // This is the key fix for RLS
           status: 'pending',
           due_date: formData.dueDate,
           file_url: fileUrl

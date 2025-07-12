@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,6 +85,7 @@ export default function Projects() {
         if (error) throw error;
         toast({ title: "Success", description: "Project updated successfully" });
       } else {
+        // Include created_by field for new projects to satisfy RLS
         const { error } = await supabase
           .from('projects')
           .insert([{ ...formData, created_by: user.id }]);

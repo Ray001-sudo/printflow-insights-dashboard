@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -93,7 +92,7 @@ export default function Billing() {
       const invoiceData = {
         ...formData,
         amount: parseFloat(formData.amount),
-        project_id: formData.project_id || null,
+        project_id: formData.project_id === 'none' ? null : formData.project_id,
         created_by: user.id
       };
 
